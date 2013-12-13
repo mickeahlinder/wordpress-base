@@ -14,18 +14,28 @@
  * @package WordPress
  */
 
-// ** MySQL settings - You can get this info from your web host ** //
-/** The name of the database for WordPress */
-define('DB_NAME', 'wp_activelife');
+/** Host name for easier config if needed **/
+$protocol = 'http://'; 
+$siteurl = $protocol . $_SERVER['SERVER_NAME'];
 
-/** MySQL database username */
-define('DB_USER', 'wp_user');
+/** Handle diffrent environments **/
+define( 'DB_CREDENTIALS_PATH', dirname( ABSPATH ) ); // cache it for multiple use
+define( 'WP_LOCAL_SERVER', file_exists( DB_CREDENTIALS_PATH . '/local-config.php' ) );
+define( 'WP_PREVIEW_SERVER', file_exists( DB_CREDENTIALS_PATH . '/preview-config.php' ) );
+define( 'WP_STAGING_SERVER', file_exists( DB_CREDENTIALS_PATH . '/staging-config.php' ) );
 
-/** MySQL database password */
-define('DB_PASSWORD', 'wp_4ct1vel1fe');
+if ( WP_LOCAL_SERVER ) {	
+	require DB_CREDENTIALS_PATH . '/local-config.php';
+} else if ( WP_PREVIEW_SERVER ) {
+	require DB_CREDENTIALS_PATH . '/preview-config.php';
+} else {
+	define( 'WP_PRODUCTION_SERVER', true );
+	define( 'DB_NAME', '%%DB_NAME%%' );
+	define( 'DB_USER', '%%DB_USER%%' );
+	define( 'DB_PASSWORD', '%%DB_PASSWORD%%' );
+	define( 'DB_HOST', '%%DB_HOST%%' );
+}
 
-/** MySQL hostname */
-define('DB_HOST', 'localhost');
 
 /** Database Charset to use in creating database tables. */
 define('DB_CHARSET', 'utf8');
@@ -71,29 +81,19 @@ $table_prefix  = 'wp_';
  */
 define('WPLANG', 'sv_SE');
 
-/**
- * For developers: WordPress debugging mode.
- *
- * Change this to true to enable the display of notices during development.
- * It is strongly recommended that plugin and theme developers use WP_DEBUG
- * in their development environments.
- */
-define('WP_DEBUG', true);
-
 /* That's all, stop editing! Happy blogging. */
 
 /** Absolute path to the WordPress directory. */
 if ( !defined('ABSPATH') )
 	define('ABSPATH', dirname(__FILE__) . '/');
 
-# Custom settings needed since we moved files outside of the wordpress folder.
-$protocol = 'http://'; 
-$siteurl = $protocol . $_SERVER['SERVER_NAME'];
+/** Setup memcache if availbale **/
+if ( file_exists( dirname( __FILE__ ) . '/memcached.php' ) )
+	$memcached_servers = include( dirname( __FILE__ ) . '/memcached.php' );
 
+/** Custom settings needed since we moved files outside of the wordpress folder. **/
 DEFINE('WP_CONTENT_DIR', dirname(ABSPATH) . '/wp-content');
 DEFINE('WP_CONTENT_URL', $siteurl . '/wpbase/wp-content');
-DEFINE('WP_SITEURL', $siteurl . '/wpbase/wp' );
-DEFINE('WP_HOME', $siteurl . '/wpbase/' );
 
 /** Sets up WordPress vars and included files. */
 require_once(ABSPATH . 'wp-settings.php');

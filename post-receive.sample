@@ -1,0 +1,28 @@
+#!/bin/bash
+WORK_DIR="/home/sites/wpbase.test.phosdev.se/web/"
+
+read oldref newref refname
+
+if ! [ -n $refname ]; then exit 0; fi;
+
+if [[ $newref =~ ^0+$ ]]
+then
+	echo "Deleting..."
+	cd $WORK_DIR && rm -fr *
+	echo "Done."
+else 
+	BRANCH=$(git rev-parse --abbrev-ref "$refname")
+
+	export GIT_DIR=$(pwd)
+	export GIT_WORK_TREE=$WORK_DIR
+
+	echo "Checking out "$BRANCH""
+	git checkout -f $BRANCH
+	git reset --hard $BRANCH
+
+	echo "Initialising submodules"
+	cd $WORK_DIR && git --work-tree="$WORK_DIR" submodule update --init --recursive --force
+
+	unset GIT_WORK_TREE GIT_DIR
+	echo "Done"
+fi
